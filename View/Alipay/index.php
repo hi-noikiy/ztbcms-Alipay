@@ -23,8 +23,8 @@
                                type="text"></td>
                 </tr>
                 <tr>
-                    <td width="100px"><label for="">seller_id</label></td>
-                    <td><input placeholder="一般情况下收款账号就是签约账号" value="{$config.alipay_seller_id}" name="alipay_seller_id"
+                    <td width="100px"><label for="">app_id</label></td>
+                    <td><input placeholder="app_id" value="{$config.alipay_app_id}" name="alipay_app_id"
                                style="width:300px;"
                                class="form-control" type="text"></td>
                 </tr>
@@ -39,12 +39,6 @@
                     <td><input placeholder="支付完成跳转url，可以调用才指定" value="{$config.alipay_return_url}" name="alipay_return_url"
                                style="width:300px;"
                                class="form-control"
-                               type="text"></td>
-                </tr>
-                <tr>
-                    <td width="100px"><label for="">sign_type</label></td>
-                    <td><input placeholder="加密类型,例如rsa" name="alipay_sign_type" value="{$config.alipay_sign_type}"
-                               style="width:300px;" class="form-control"
                                type="text"></td>
                 </tr>
                 <tr>
