@@ -6,7 +6,7 @@ use Common\Controller\AdminBase;
 class AlipayController extends AdminBase {
     public function index() {
         if (IS_POST) {
-            $post = I('post.');
+            $post = $_POST;
             foreach ($post as $key => $value) {
                 $is_exsit = D('Config')->where("varname='%s'", $key)->find();
                 if ($is_exsit) {
@@ -18,8 +18,8 @@ class AlipayController extends AdminBase {
                 }
             }
             $this->success('设置成功');
-        }else{
-            $this->assign('config',cache('Config'));
+        } else {
+            $this->assign('config', cache('Config'));
             $this->display();
         }
     }

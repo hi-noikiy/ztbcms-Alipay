@@ -4,11 +4,25 @@ namespace Alipay\Service;
 use Payment\Client\Charge;
 use Payment\Common\PayException;
 
-class Alipay {
-    static function createWappay($amount, $order_no, $body = '商品', $subject = '介绍', $return_param) {
+class Alipay extends BaseService {
+    static function createWappay(
+        $amount,
+        $order_no,
+        $body = '',
+        $subject = '',
+        $return_param = '',
+        $use_sandbox = false
+    ) {
+        if (!$body) {
+            return self::createReturn(false, '', '请输入支付商品介绍');
+        }
+        if (!$subject) {
+            return self::createReturn(false, '', '请输入商品标题');
+        }
+
         $config = cache('Config');
         $alipay_config = [
-            'use_sandbox' => false,
+            'use_sandbox' => $use_sandbox,
             'partner' => $config['alipay_partner'],
             'app_id' => $config['alipay_app_id'],
             'sign_type' => 'RSA',
@@ -34,10 +48,9 @@ class Alipay {
             $payUrl = Charge::run($channel, $alipay_config, $payData);
         } catch (PayException $e) {
             // 异常处理
-            echo $e;
-            exit;
+            return self::createReturn(false, '', $e->errorMessage());
         }
 
-        return $payUrl;
+        return self::createReturn(true, $payUrl, 'ok');
     }
 }

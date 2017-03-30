@@ -6,6 +6,12 @@ use Common\Controller\Base;
 
 class IndexController extends Base {
     public function index() {
-        redirect(Alipay::createWappay(100, time()));
+        $pay_res = Alipay::createWappay(100, time(), '商品', '介绍');
+        if ($pay_res['status']) {
+            redirect($pay_res['data']);
+        } else {
+            echo $pay_res['msg'];
+        }
+        exit;
     }
 }
