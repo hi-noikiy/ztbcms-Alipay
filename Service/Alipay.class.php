@@ -1,13 +1,31 @@
 <?php
 namespace Alipay\Service;
 
+use System\Model\OrderModel;
+use System\Service\OrderService;
+
 require_once APP_PATH . 'Alipay/Sdk/wappay/service/AlipayTradeService.php';
 require_once APP_PATH . 'Alipay/Sdk/wappay/buildermodel/AlipayTradeWapPayContentBuilder.php';
 
+/**
+ * 支付
+ * Class Alipay
+ * @package Alipay\Service
+ */
 class Alipay extends BaseService {
-    static function createWappay($amount, $order_no, $body = '', $subject = '') {
+
+    /**
+     * 创建支付
+     * @param $amount
+     * @param $order_no
+     * @param string $return_url
+     * @param string $body
+     * @param string $subject
+     * @return bool|mixed|\SimpleXMLElement|string|\提交表单HTML文本
+     */
+    static function createWappay($amount, $order_no, $return_url = '', $body = '', $subject = '') {
         //超时时间
-        $config = cache('Config');
+        $notify_url = U('Alipay/PayNotify/index');
         $timeout_express = "1m";
         $payRequestBuilder = new \AlipayTradeWapPayContentBuilder();
         $payRequestBuilder->setBody($body);
@@ -16,37 +34,38 @@ class Alipay extends BaseService {
         $payRequestBuilder->setTotalAmount($amount);
         $payRequestBuilder->setTimeExpress($timeout_express);
         $pay_config = [
-            'app_id' => $config['alipay_app_id'],
-            'merchant_private_key' => $config['alipay_private_key'],
-            'notify_url' => $config['alipay_notify_url'],
-            'alipay_return_url' => $config['alipay_return_url'],
+            'app_id' => self::getAppId(),
+            'merchant_private_key' => self::getRsaPrivateKey(),
+            'notify_url' => $notify_url,
+            'alipay_return_url' => $return_url,
             'charset' => "UTF-8",
-            'sign_type' => "RSA",
+            'sign_type' => self::getSignType(),
             'gatewayUrl' => "https://openapi.alipay.com/gateway.do",
-            'alipay_public_key' => $config['alipay_public_key'],
+            'alipay_public_key' => self::getAlipayrsaPublicKey(),
         ];
         $payResponse = new \AlipayTradeService($pay_config);
 
-        return $payResponse->wapPay($payRequestBuilder, $config['return_url'], $config['notify_url']);
+        return $payResponse->wapPay($payRequestBuilder, $return_url, $notify_url);
     }
 
+    /**
+     * 回调
+     * @param array $arr
+     */
     static function notify($arr = []) {
         if (!$arr) {
-            $arr = $_POST;
+            $arr = $_POST ? $_POST : $_GET;
         }
-        $config = cache('Config');
         $pay_config = [
-            'app_id' => $config['alipay_app_id'],
-            'merchant_private_key' => $config['alipay_private_key'],
-            'notify_url' => $config['alipay_notify_url'],
-            'alipay_return_url' => $config['alipay_return_url'],
+            'app_id' => self::getAppId(),
+            'merchant_private_key' => self::getRsaPrivateKey(),
             'charset' => "UTF-8",
-            'sign_type' => "RSA",
+            'sign_type' => self::getSignType(),
             'gatewayUrl' => "https://openapi.alipay.com/gateway.do",
-            'alipay_public_key' => $config['alipay_public_key'],
+            'alipay_public_key' => self::getAlipayrsaPublicKey(),
         ];
         $alipaySevice = new \AlipayTradeService($pay_config);
-        $alipaySevice->writeLog(var_export($_POST, true));
+        $alipaySevice->writeLog(var_export($arr, true));
         $result = $alipaySevice->check($arr);
 
         /* 实际验证过程建议商户添加以下校验。
@@ -93,6 +112,11 @@ class Alipay extends BaseService {
                     //如果有做过处理，不执行商户的业务程序
                     //注意：
                     //付款完成后，支付宝系统发送该交易状态通知
+
+                    //支付成功Hook
+                    //TODO
+
+                    AlipayPay::updateOrderInfo($arr);
                 }
             }
             //——请根据您的业务逻辑来编写程序（以上代码仅作参考）——
