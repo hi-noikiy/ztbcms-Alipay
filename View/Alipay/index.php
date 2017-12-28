@@ -29,17 +29,10 @@
                                class="form-control" type="text"></td>
                 </tr>
                 <tr>
-                    <td width="100px"><label for="">notify_url</label></td>
-                    <td><input placeholder="异步通知url，可以调用才指定" value="{$config.alipay_notify_url}" name="alipay_notify_url"
-                               style="width:300px;" class="form-control"
-                               type="text"></td>
-                </tr>
-                <tr>
-                    <td width="100px"><label for="">return_url</label></td>
-                    <td><input placeholder="支付完成跳转url，可以调用才指定" value="{$config.alipay_return_url}" name="alipay_return_url"
+                    <td width="100px"><label for="">sign_type</label></td>
+                    <td><input placeholder="RSA2/RSA" value="{$config.sign_type}" name="sign_type"
                                style="width:300px;"
-                               class="form-control"
-                               type="text"></td>
+                               class="form-control" type="text"></td>
                 </tr>
                 <tr>
                     <td width="100px"><label for="">alipay_public_key</label></td>
