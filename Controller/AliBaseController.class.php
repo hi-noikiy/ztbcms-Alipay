@@ -26,7 +26,7 @@ class AliBaseController extends Base {
             }
 
             if (!I('get.auth_code')) {
-                if(session('ali_user_info')){
+                if(session('ali_user_info') && session('ali_user_info')['access_token_expires'] > time()){
                     $this->ali_user_info = session('ali_user_info');
 
                 }else{
@@ -58,7 +58,7 @@ class AliBaseController extends Base {
                 //检查是否有会员登录，有会员登录自动绑定会员信息
                 $userinfo = service("Passport")->getInfo();
                 if ($userinfo) {
-                    //如果不是绑定的原有微信，则取消该绑定，绑定现有的微信
+                    //如果不是绑定的原有支付宝，则取消该绑定，绑定现有的支付宝
                     M('Alipay')->where(["id" => $binding['id']])->save(array('userid' => $userinfo['userid']));
                 }
             } else {
