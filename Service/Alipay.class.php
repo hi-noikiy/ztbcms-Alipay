@@ -4,8 +4,8 @@ namespace Alipay\Service;
 use System\Model\OrderModel;
 use System\Service\OrderService;
 
+require_once APP_PATH . 'Alipay/Sdk/aop/request/AlipayTradeWapPayRequest.php';
 require_once APP_PATH . 'Alipay/Sdk/wappay/service/AlipayTradeService.php';
-require_once APP_PATH . 'Alipay/Sdk/wappay/buildermodel/AlipayTradeWapPayContentBuilder.php';
 
 /**
  * 支付
@@ -21,31 +21,27 @@ class Alipay extends BaseService {
      * @param string $return_url
      * @param string $body
      * @param string $subject
-     * @return bool|mixed|\SimpleXMLElement|string|\提交表单HTML文本
      */
-    static function createWappay($amount, $order_no, $return_url = '', $body = '', $subject = '') {
-        //超时时间
-        $notify_url = U('Alipay/PayNotify/index');
-        $timeout_express = "1m";
-        $payRequestBuilder = new \AlipayTradeWapPayContentBuilder();
-        $payRequestBuilder->setBody($body);
-        $payRequestBuilder->setSubject($subject);
-        $payRequestBuilder->setOutTradeNo($order_no);
-        $payRequestBuilder->setTotalAmount($amount);
-        $payRequestBuilder->setTimeExpress($timeout_express);
-        $pay_config = [
-            'app_id' => self::getAppId(),
-            'merchant_private_key' => self::getRsaPrivateKey(),
-            'notify_url' => $notify_url,
-            'alipay_return_url' => $return_url,
-            'charset' => "UTF-8",
-            'sign_type' => self::getSignType(),
-            'gatewayUrl' => "https://openapi.alipay.com/gateway.do",
-            'alipay_public_key' => self::getAlipayrsaPublicKey(),
-        ];
-        $payResponse = new \AlipayTradeService($pay_config);
+    static function createWappay($amount, $order_no, $return_url = '', $body = '', $subject = ''){
+        //回调地址不能带参数
+        $notify_url = 'http://'.$_SERVER['HTTP_HOST'].'/Alipay/PayNotify';
 
-        return $payResponse->wapPay($payRequestBuilder, $return_url, $notify_url);
+        $aop = self::getAopClient();
+        $request = new \AlipayTradeWapPayRequest();
+        $request->setNotifyUrl($notify_url);
+        $request->setReturnUrl($return_url);
+
+        $bizContent = [
+            "body" => $body,
+            "subject" => $subject,
+            "out_trade_no" => $order_no,
+            "total_amount" => $amount,
+            'product_code' => "QUICK_WAP_WAY"
+        ];
+        $request->setBizContent(json_encode($bizContent));
+        $result = $aop->pageExecute($request);
+
+        echo $result;
     }
 
     /**
